@@ -1,0 +1,64 @@
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "InventoryManagement";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Retrieve form data
+    $product_id = $_POST['product_id'];
+    $quantity = $_POST['quantity'];
+
+    // Update stock in Inventory table
+    $sql = "UPDATE Inventory SET stock_quantity = stock_quantity + $quantity WHERE product_id = $product_id";
+    if ($conn->query($sql) === TRUE) {
+        echo "Stock updated successfully!<br>";
+
+        // Log the transaction in Transactions table
+        $sql = "INSERT INTO Transactions (product_id, quantity, transaction_type) 
+                VALUES ($product_id, $quantity, 'Purchase')";
+        if ($conn->query($sql) === TRUE) {
+            echo "Transaction recorded successfully!";
+        } else {
+            echo "Error logging transaction: " . $conn->error;
+        }
+    } else {
+        echo "Error updating stock: " . $conn->error;
+    }
+}
+
+$conn->close();
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System</title>
+</head>
+<body>
+
+<h2>Inventory Management - Add Stock</h2>
+
+<!-- Form to Add Stock -->
+<form method="POST">
+    <label for="product_id">Product ID:</label>
+    <input type="text" id="product_id" name="product_id" required><br><br>
+    
+    <label for="quantity">Quantity:</label>
+    <input type="text" id="quantity" name="quantity" required><br><br>
+    
+    <button type="submit">Update Stock</button>
+</form>
+
+</body>
+</html>
